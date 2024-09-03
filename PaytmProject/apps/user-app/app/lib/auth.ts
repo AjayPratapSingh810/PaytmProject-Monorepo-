@@ -8,8 +8,17 @@ export const authOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
-        password: { label: "Password", type: "password" },
+        phone: {
+          label: "Phone number",
+          type: "text",
+          placeholder: "7206446044",
+          required: true,
+        },
+        password: {
+          label: "Password",
+          type: "password",
+          placeholder: "********",
+        },
       },
       async authorize(credentials, req) {
         // Do zod validation, OTP validation here
@@ -19,7 +28,6 @@ export const authOptions = {
             number: credentials.phone,
           },
         });
-
         if (existingUser) {
           const passwordValidation = await bcrypt.compare(
             credentials.password,
@@ -61,7 +69,6 @@ export const authOptions = {
     // TODO: can u fix the type here? Using any is bad
     async session({ token, session }: any) {
       session.user.id = token.sub;
-
       return session;
     },
   },
