@@ -2,9 +2,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth";
 import prisma from "@repo/db/client";
-import { createP2pOnRampTransaction } from "./createOnRampTransaction";
 export async function p2pTransfer(to: string, amount: number) {
-    console.log("to----------> ", to);
     const session = await getServerSession(authOptions);
     const from = session?.user?.id;
     if (!from) {
@@ -24,22 +22,30 @@ export async function p2pTransfer(to: string, amount: number) {
         }
     }
     await prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT * FROM "Balance" WHERE "userId" = ${Number(from)} FOR UPDATE`;
         const fromBalance = await tx.balance.findUnique({
             where: { userId: Number(from) },
           });
           if (!fromBalance || fromBalance.amount < amount) {
             throw new Error('Insufficient funds');
           }
-          await new Promise(r => setTimeout(r, 4000));
           await tx.balance.update({
             where: { userId: Number(from) },
-            data: { amount: { decrement: amount } },
+            data: { amount: { decrement: amount * 100} },
           });
 
           await tx.balance.update({
             where: { userId: toUser.id },
-            data: { amount: { increment: amount } },
+            data: { amount: { increment: amount * 100} },
           });
+        await tx.p2pTransfer.create({
+            data: {
+                amount: Number(amount * 100),
+                timestamp:new Date,
+                fromUserId: Number(from),
+                toUserId:toUser.id,
+            }
+        })
         
         });
     // await createP2pOnRampTransaction(from, to, amount);
