@@ -1,6 +1,6 @@
 
 export default function() {
     return <div>
-        Transaction
+        Transaction is an essential for app
     </div>
 }
