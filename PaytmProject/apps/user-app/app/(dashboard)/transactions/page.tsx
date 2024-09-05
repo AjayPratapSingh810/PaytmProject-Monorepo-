@@ -1,6 +1,6 @@
 
 export default function() {
     return <div>
-        Transaction
+        Transaction hu mai
     </div>
 }
